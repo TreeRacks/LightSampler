@@ -8,5 +8,8 @@
 int initI2cBus(char* bus, int address);
 void writeI2cReg(int i2cFileDesc, unsigned char regAddr, unsigned char value);
 unsigned char readI2cReg(int i2cFileDesc, unsigned char regAddr);
+void initializeStartRegisters();
+int displayInteger(int i);
+double displayDouble(double d);
 
 #endif

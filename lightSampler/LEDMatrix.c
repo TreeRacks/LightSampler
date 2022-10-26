@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define I2C_DEVICE_ADDRESS 0x70
+#define SYS_SETUP_REG 0X21
+#define DISPLAY_SETUP_REG 0x81
 // Assume pins already configured for I2C:
 // (bbg)$ config-pin P9_18 i2c
 // (bbg)$ config-pin P9_17 i2c
@@ -51,4 +54,18 @@ unsigned char readI2cReg(int i2cFileDesc, unsigned char regAddr)
   return value;
 }
 
+void initializeStartRegisters(){
+    int i2cFileDesc = initI2cBus(I2CDRV_LINUX_BUS1, I2C_DEVICE_ADDRESS);
+    writeI2cReg(i2cFileDesc, SYS_SETUP_REG, 0x00); //write to the system setup register to turn on the matrix.
+    writeI2cReg(i2cFileDesc, DISPLAY_SETUP_REG, 0x00); //write to display setup register to turn on LEDs, no flashing.
+}
 
+int displayInteger(int i){
+    int newInt = 0; //do some math: eg. from 0-4096 to 0-99
+    return newInt;
+}
+
+double displayDouble(double d){ 
+    double newDouble = 0; //do some math: eg. from 0-4096 to 0-9.9
+    return newDouble;
+}
