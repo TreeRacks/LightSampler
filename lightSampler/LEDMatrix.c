@@ -80,20 +80,29 @@ static charInfo charInfoMatrix [] = { // holds all the bit data for each row for
     {'9', '4', {0x04, 0x0A, 0x0A, 0x06, 0x02, 0x02, 0x0C, 0x00}},
     {'.', '1', {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}},
     {' ', '4', {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}},
-    
 };
-
-static charInfo* getCharInfo{
-    for(int i = 0;  ){
-
+#define EMPTY 0
+charInfo* searchForCharInfo(char c){ // searches for a char and then returns the address if it is found
+    for(int i = 0; charInfoMatrix[i].digit != EMPTY; i++){
+      if (charInfoMatrix[i].digit == c){
+        return &charInfoMatrix[i];
+      }
     }
     return NULL;
 }
 
-void displayMatrix(char message){
+// void displayMatrix(char message){
     
-}
+// }
 
+void shiftLeftBy(int x, char c){ //shiftLeftBy(2,'1')
+  if(x >= 0){
+    c << x;
+  }
+  else if(x < 0){
+    c >> x;
+  }
+}
 
 int displayInteger(int i){
     int newInt = 0; //do some math: eg. from 0-4096 to 0-99
