@@ -7,5 +7,7 @@
 
 double Joystick_readX();
 double Joystick_readY();
+double joyStickCalculationX();
+double joyStickCalculationY();
 
 #endif

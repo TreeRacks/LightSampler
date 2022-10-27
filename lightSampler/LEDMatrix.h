@@ -9,7 +9,7 @@
 #define NUMBER_OF_MATRIX_COLS 8
 
 int initI2cBus(char* bus, int address);
-void writeI2cReg(int i2cFileDesc, unsigned char regAddr, unsigned char value)
+void writeI2cReg(int i2cFileDesc, unsigned char regAddr, unsigned char value);
 unsigned char readI2cReg(int i2cFileDesc, unsigned char regAddr);
 
 void initializeStartRegisters();
