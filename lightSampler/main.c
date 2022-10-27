@@ -15,10 +15,9 @@
 
 int main(){
 
-
   printf("Drive display (assumes GPIO #61 and #44 are output and 1\n");
-  int i2cFileDesc = initI2cBus(I2CDRV_LINUX_BUS1, I2C_DEVICE_ADDRESS);
   initializeStartRegisters();
+  int i2cFileDesc = initI2cBus(I2CDRV_LINUX_BUS1, I2C_DEVICE_ADDRESS);
   writeI2cReg(i2cFileDesc, REG_DIRA, 0xFF);
   writeI2cReg(i2cFileDesc, REG_DIRB, 0xFF);
   // Drive an hour-glass looking character
