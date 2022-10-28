@@ -24,13 +24,13 @@ int main(){
   for(int i = 0; i < 16; i+=2){
     writeI2cReg(i2cFileDesc, i, 0x00);
   }
-  writeI2cReg(i2cFileDesc, 0x00, 0x04);
-  writeI2cReg(i2cFileDesc, 0x02, 0x06);
-  writeI2cReg(i2cFileDesc, 0x04, 0x04);
-  writeI2cReg(i2cFileDesc, 0x06, 0x04);
-  writeI2cReg(i2cFileDesc, 0x08, 0x04);
-  writeI2cReg(i2cFileDesc, 0x0A, 0x04);
-  writeI2cReg(i2cFileDesc, 0x0C, 0x0E);
+  writeI2cReg(i2cFileDesc, 0x00, 0x20);
+  writeI2cReg(i2cFileDesc, 0x02, 0x50);
+  writeI2cReg(i2cFileDesc, 0x04, 0x50);
+  writeI2cReg(i2cFileDesc, 0x06, 0x60);
+  writeI2cReg(i2cFileDesc, 0x08, 0x40);
+  writeI2cReg(i2cFileDesc, 0x0A, 0x40); 
+  writeI2cReg(i2cFileDesc, 0x0C, 0x30);
   writeI2cReg(i2cFileDesc, 0x0E, 0x00);
   
   // Drive an hour-glass looking character
