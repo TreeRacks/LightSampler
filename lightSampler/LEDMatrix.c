@@ -95,13 +95,14 @@ charInfo* searchForCharInfo(char c){ // searches for a char and then returns the
     
 // }
 
-void shiftLeftBy(int x, char c){ //shiftLeftBy(2,'1')
+char shiftLeftBy(int x, char c){ //shiftLeftBy(2,'1')
   if(x >= 0){
-    c << x;
+    return c << x;
   }
   else if(x < 0){
-    c >> x;
+    return c >> x;
   }
+  return 0;
 }
 
 int displayInteger(int i){
