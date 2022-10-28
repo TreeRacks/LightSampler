@@ -91,20 +91,17 @@ charInfo* searchForCharInfo(char c){ // searches for a char and then returns the
     return NULL;
 }
 
-void displayMatrix(char message){
-  //char currentMessage = message;
+// void displayMatrix(char message){
+    
+// }
 
-  
-}
-
-char shiftBy(int x, char c){ //shiftLeftBy(2,'1')
+void shiftLeftBy(int x, char c){ //shiftLeftBy(2,'1')
   if(x >= 0){
-    return c << x;
+    c << x;
   }
   else if(x < 0){
-    return c >> x;
+    c >> x;
   }
-  return 0; 
 }
 
 int displayInteger(int i){

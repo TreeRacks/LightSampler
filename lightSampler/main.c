@@ -22,7 +22,7 @@ int main(){
   for(int i = 0; i < 16; i+=2){
     writeI2cReg(i2cFileDesc, i, 0x00);
   }
-  writeI2cReg(i2cFileDesc, 0x00, 0x21);
+  writeI2cReg(i2cFileDesc, 0x00, 0x81);
   writeI2cReg(i2cFileDesc, 0x02, 0x06);
   writeI2cReg(i2cFileDesc, 0x04, 0x04);
   writeI2cReg(i2cFileDesc, 0x06, 0x04);
