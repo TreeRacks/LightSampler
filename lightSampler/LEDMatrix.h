@@ -13,7 +13,7 @@ void writeI2cReg(int i2cFileDesc, unsigned char regAddr, unsigned char value);
 unsigned char readI2cReg(int i2cFileDesc, unsigned char regAddr);
 
 void initializeStartRegisters();
-void displayMatrix(char message);
+void displayMatrix(char* display);
 
 int displayInteger(int i);
 double displayDouble(double d);

@@ -103,9 +103,23 @@ charInfo* searchForCharInfo(char c){ // searches for a char and then returns the
     return NULL;
 }
 
-// void displayMatrix(char message){
+
+void displayMatrix(char* display){
+  //char* remainingOutput = display;
+  for(int col = 0; col < NUMBER_OF_MATRIX_COLS; col++){ // go through all columns
+    char current = EMPTY; // initialize the current char to be empty
+    if(*display != EMPTY){
+      current = *display;
+      ++display;      
+    }
+    charInfo* currentCharInfo = searchForCharInfo(current);
+    char charRowByRowBits = charInfoMatrix->rowBitArr; //charInfo or charInfoMatrix
+    //char charCurrentColumns = char
+
     
-// }
+  }
+      
+}
 
 char shiftLeftBy(int x, char c){ //shiftLeftBy(2,'1')
   if(x >= 0){
