@@ -1,6 +1,7 @@
 #include "LEDMatrix.h"
 #include "joystick.h"
 #include "sampling.h"
+#include "mainHelper.h"
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -17,12 +18,13 @@ int main(){
 
 
   printf("Drive display (assumes GPIO #61 and #44 are output and 1\n");
+  configureI2C();
   initializeStartRegisters();
   int i2cFileDesc = initI2cBus(I2CDRV_LINUX_BUS1, I2C_DEVICE_ADDRESS);
   for(int i = 0; i < 16; i+=2){
     writeI2cReg(i2cFileDesc, i, 0x00);
   }
-  writeI2cReg(i2cFileDesc, 0x00, 0x81);
+  writeI2cReg(i2cFileDesc, 0x00, 0x04);
   writeI2cReg(i2cFileDesc, 0x02, 0x06);
   writeI2cReg(i2cFileDesc, 0x04, 0x04);
   writeI2cReg(i2cFileDesc, 0x06, 0x04);
