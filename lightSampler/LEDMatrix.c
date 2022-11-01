@@ -167,7 +167,7 @@ void displayMatrix(char* display){
     charCurrentColumns = currentMatrixData->cols;
 
     for(int i = 0; i < NUMBER_OF_MATRIX_ROWS; i++){ // for every row
-      int n = NUMBER_OF_MATRIX_COLS - col - charCurrentColumns;
+      int n = NUMBER_OF_MATRIX_COLS - charCurrentColumns - col;
       printf("n is %d\n", n);
       printf("rowbits before shifting are %d\n", charRowByRowBits[i]);
       char rowBits = shiftLeftOnMatrixBy(n,charRowByRowBits[i]); //shift each digit left on the display with a right bitwise shift (>>)
