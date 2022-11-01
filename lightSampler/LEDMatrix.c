@@ -6,10 +6,15 @@
 #include <linux/i2c-dev.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
 
 #define I2C_DEVICE_ADDRESS 0x70
 #define SYS_SETUP_REG 0X21
 #define DISPLAY_SETUP_REG 0x81
+
+static unsigned char logicalFrameArr[NUMBER_OF_MATRIX_ROWS];
+static unsigned char physicalFrameArr[NUMBER_OF_MATRIX_ROWS*2];
 
 // Assume pins already configured for I2C:
 // (bbg)$ config-pin P9_18 i2c
@@ -35,6 +40,25 @@ void writeI2cReg(int i2cFileDesc, unsigned char regAddr, unsigned char value)
     perror("I2C: Unable to write i2c register.");
     exit(1);
   }
+}
+
+
+void writeI2cBytes(unsigned char* physicalFrameValues){
+  int i2cFileDesc = initI2cBus(I2CDRV_LINUX_BUS1, I2C_DEVICE_ADDRESS);
+  // for(int i = 0; i < 16; i += 2){ // for all 8 rows
+  //  for(int j = 0; j < 8; j++){
+  //   writeI2cReg(i2cFileDesc, i, physicalFrameValues[j]);
+  //     printf("%c\n", physicalFrameValues[j]);
+      writeI2cReg(i2cFileDesc, 0x00, physicalFrameValues[0]);
+      writeI2cReg(i2cFileDesc, 0x02, physicalFrameValues[1]);
+      writeI2cReg(i2cFileDesc, 0x04, physicalFrameValues[2]);
+      writeI2cReg(i2cFileDesc, 0x06, physicalFrameValues[3]);
+      writeI2cReg(i2cFileDesc, 0x08, physicalFrameValues[4]);
+      writeI2cReg(i2cFileDesc, 0x0A, physicalFrameValues[5]);
+      writeI2cReg(i2cFileDesc, 0x0C, physicalFrameValues[6]);
+      writeI2cReg(i2cFileDesc, 0x0E, physicalFrameValues[7]);
+  //   }
+  // }
 }
 
 unsigned char readI2cReg(int i2cFileDesc, unsigned char regAddr)
@@ -68,31 +92,32 @@ typedef struct {
 } charInfo;
 
 static charInfo charInfoMatrix [] = { // holds all the bit data for each row for every character that may need to be displayed
-    // {'0', '4', {0x04, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x04, 0x00}},
-    // {'1', '4', {0x04, 0x0C, 0x04, 0x04, 0x04, 0x04, 0x0E, 0x00}},
-    // {'2', '4', {0x04, 0x0A, 0x02, 0x04, 0x04, 0x08, 0x0E, 0x00}},
-    // {'3', '4', {0x0C, 0x02, 0x02, 0x0E, 0x02, 0x02, 0x0C, 0x00}},
-    // {'4', '4', {0x02, 0x06, 0x0A, 0x0A, 0x0E, 0x02, 0x02, 0x00}},
-    // {'5', '4', {0x0E, 0x08, 0x08, 0x0E, 0x02, 0x0A, 0x04, 0x00}},
-    // {'6', '4', {0x06, 0x08, 0x08, 0x0C, 0x0A, 0x0A, 0x04, 0x00}},
-    // {'7', '4', {0x0E, 0x02, 0x02, 0x02, 0x04, 0x04, 0x04, 0x00}},
-    // {'8', '4', {0x04, 0x0A, 0x0A, 0x04, 0x0A, 0x0A, 0x04, 0x00}},
-    // {'9', '4', {0x04, 0x0A, 0x0A, 0x06, 0x02, 0x02, 0x0C, 0x00}},
-    // {'.', '1', {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}},
-    // {' ', '4', {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}},
-    {'0', '4', {0x20, 0x50, 0x50, 0x50, 0x50, 0x50, 0x20, 0x00}},
-    {'1', '4', {0x20, 0x30, 0x20, 0x20, 0x20, 0x20, 0x70, 0x00}},
-    {'2', '4', {0x20, 0x50, 0x40, 0x20, 0x20, 0x10, 0x70, 0x00}},
-    {'3', '4', {0x30, 0x40, 0x40, 0x70, 0x40, 0x40, 0x30, 0x00}},
-    {'4', '4', {0x40, 0x60, 0x50, 0x50, 0x70, 0x40, 0x40, 0x00}},
-    {'5', '4', {0x70, 0x10, 0x10, 0x70, 0x40, 0x50, 0x20, 0x00}},
-    {'6', '4', {0x60, 0x10, 0x10, 0x30, 0x50, 0x50, 0x20, 0x00}},
-    {'7', '4', {0x70, 0x40, 0x40, 0x40, 0x20, 0x20, 0x20, 0x00}},
-    {'8', '4', {0x20, 0x50, 0x50, 0x20, 0x50, 0x50, 0x20, 0x00}},
-    {'9', '4', {0x20, 0x50, 0x50, 0x60, 0x40, 0x40, 0x30, 0x00}},
-    {'.', '1', {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}},
-    {' ', '4', {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}},
+    // {'0', 4, {0x04, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x04, 0x00}},
+    // {'1', 4, {0x04, 0x0C, 0x04, 0x04, 0x04, 0x04, 0x0E, 0x00}},
+    // {'2', 4, {0x04, 0x0A, 0x02, 0x04, 0x04, 0x08, 0x0E, 0x00}},
+    // {'3', 4, {0x0C, 0x02, 0x02, 0x0E, 0x02, 0x02, 0x0C, 0x00}},
+    // {'4', 4, {0x02, 0x06, 0x0A, 0x0A, 0x0E, 0x02, 0x02, 0x00}},
+    // {'5', 4, {0x0E, 0x08, 0x08, 0x0E, 0x02, 0x0A, 0x04, 0x00}},
+    // {'6', 4, {0x06, 0x08, 0x08, 0x0C, 0x0A, 0x0A, 0x04, 0x00}},
+    // {'7', 4, {0x0E, 0x02, 0x02, 0x02, 0x04, 0x04, 0x04, 0x00}},
+    // {'8', 4, {0x04, 0x0A, 0x0A, 0x04, 0x0A, 0x0A, 0x04, 0x00}},
+    // {'9', 4, {0x04, 0x0A, 0x0A, 0x06, 0x02, 0x02, 0x0C, 0x00}},
+    // {'.', 1, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}},
+    // {' ', 4, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}},
+    {'0', 4, {0x20, 0x50, 0x50, 0x50, 0x50, 0x50, 0x20, 0x00}},
+    {'1', 4, {0x20, 0x30, 0x20, 0x20, 0x20, 0x20, 0x70, 0x00}},
+    {'2', 4, {0x20, 0x50, 0x40, 0x20, 0x20, 0x10, 0x70, 0x00}},
+    {'3', 4, {0x30, 0x40, 0x40, 0x70, 0x40, 0x40, 0x30, 0x00}},
+    {'4', 4, {0x40, 0x60, 0x50, 0x50, 0x70, 0x40, 0x40, 0x00}},
+    {'5', 4, {0x70, 0x10, 0x10, 0x70, 0x40, 0x50, 0x20, 0x00}},
+    {'6', 4, {0x60, 0x10, 0x10, 0x30, 0x50, 0x50, 0x20, 0x00}},
+    {'7', 4, {0x70, 0x40, 0x40, 0x40, 0x20, 0x20, 0x20, 0x00}},
+    {'8', 4, {0x20, 0x50, 0x50, 0x20, 0x50, 0x50, 0x20, 0x00}},
+    {'9', 4, {0x20, 0x50, 0x50, 0x60, 0x40, 0x40, 0x30, 0x00}},
+    {'.', 1, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40}},
+    {' ', 4, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}},
 };
+
 #define EMPTY 0
 charInfo* searchForCharInfo(char c){ // searches for a char and then returns the address if it is found
     for(int i = 0; charInfoMatrix[i].digit != EMPTY; i++){
@@ -103,40 +128,100 @@ charInfo* searchForCharInfo(char c){ // searches for a char and then returns the
     return NULL;
 }
 
-
-void displayMatrix(char* display){
-  //char* remainingOutput = display;
-  for(int col = 0; col < NUMBER_OF_MATRIX_COLS; col++){ // go through all columns
-    char current = EMPTY; // initialize the current char to be empty
-    if(*display != EMPTY){
-      current = *display;
-      ++display;      
-    }
-    charInfo* currentCharInfo = searchForCharInfo(current);
-    char charRowByRowBits = charInfoMatrix->rowBitArr; //charInfo or charInfoMatrix
-    //char charCurrentColumns = char
-
-    
-  }
-      
-}
-
-char shiftLeftBy(int x, char c){ //shiftLeftBy(2,'1')
+char shiftLeftOnMatrixBy(int x, char c){ //shiftLeftBy(2,'1')
   if(x >= 0){
-    return c << x;
-  }
-  else if(x < 0){
     return c >> x;
+  }
+  else{
+    return c << -1*x; //do nothing
   }
   return 0;
 }
 
-int displayInteger(int i){
-    int newInt = 0; //do some math: eg. from 0-4096 to 0-99
-    return newInt;
+
+
+void logicalFrame(){
+  for(int i = 0; i < NUMBER_OF_MATRIX_ROWS; i++){
+    unsigned char logicalRows = logicalFrameArr[NUMBER_OF_MATRIX_ROWS - i -1]; // use [i] or [NUMBER_OF_MATRIX_ROWS - i - 1] instead to flip the direction.
+
+    unsigned char physicalRows = ((logicalRows >> 1) | (logicalRows << 7)); // & 0xFF;
+
+    physicalFrameArr[i] = physicalRows;
+    physicalFrameArr[i*2 + 1] = 0x00; // might not be necessary
+    printf("%d\n", logicalFrameArr[i]);
+  }
+  writeI2cBytes(physicalFrameArr);
 }
 
-double displayDouble(double d){ 
-    double newDouble = 0; //do some math: eg. from 0-4096 to 0-9.9
-    return newDouble;
+void displayMatrix(char* display){
+  
+  char current = ' '; // initialize the current char to be empty
+  if(*display != EMPTY){
+    current = *display; 
+      
+  }
+  charInfo* currentCharInfo = searchForCharInfo(current);
+  printf("search returns %d\n",searchForCharInfo(current)->cols);
+  char* charRowByRowBits = currentCharInfo->rowBitArr; 
+  int charCurrentColumns = currentCharInfo->cols;
+  printf("current columns is %d\n", charCurrentColumns);
+  for(int col = 0; col < NUMBER_OF_MATRIX_COLS; col+=charCurrentColumns){ // go through all columns
+    current = ' '; // initialize the current char to be empty
+    if(*display != EMPTY){
+      current = *display;
+      ++display;      
+    }
+    printf("current is %c\n",current);
+
+    currentCharInfo = searchForCharInfo(current);
+    printf("search returns %p\n", searchForCharInfo(current));
+    charRowByRowBits = currentCharInfo->rowBitArr; //charInfo or charInfoMatrix
+    printf("currentCharInfo is %d\n", currentCharInfo->rowBitArr[1]);
+
+    charCurrentColumns = currentCharInfo->cols;
+
+    for(int i = 0; i < NUMBER_OF_MATRIX_ROWS; i++){ // for every row
+      int n = NUMBER_OF_MATRIX_COLS - col - charCurrentColumns;
+      printf("n is %d\n", n);
+      printf("rowbits before shifting are %d\n", charRowByRowBits[i]);
+      char rowBits = shiftLeftOnMatrixBy(n,charRowByRowBits[i]); //shift each digit left on the display with a right bitwise shift (>>)
+      printf("rowbits are %d\n", rowBits);
+      logicalFrameArr[i] |= rowBits;
+    }
+
+   
+    }
+   logicalFrame();
+  }
+
+
+
+
+void displayInteger(int i){
+  if(i > 99){
+    i = 99;
+  }
+  else if(i < 0){
+    i = 0; 
+  }
+  else if ((i <= 99) | (i >= 0)){
+    char buff[10];
+    snprintf(buff, 10, "%d", i);
+    displayMatrix(buff); //do some math: eg. from 0-4096 to 0-99
+  }
+}
+
+void displayDouble(double d){ 
+  if(d > 9.9){
+    d = 9.9;
+  }
+  else if(d < 0.0){
+    d = 0.0; 
+  }
+  else if ((d <= 9.9) | (d >= 0.0)){
+    char buff[10];
+    snprintf(buff, 10, "%f", d);
+    displayMatrix(buff); //do some math: eg. from 0-4096 to 0-99
+  }
+    
 }
