@@ -43,8 +43,7 @@ void writeI2cReg(int i2cFileDesc, unsigned char regAddr, unsigned char value)
   }
 }
 
-
-void writeI2cBytes(unsigned char* physicalFrameValues){
+void writeMatrixByBytes(unsigned char* physicalFrameValues){
   int i2cFileDesc = initI2cBus(I2CDRV_LINUX_BUS1, I2C_DEVICE_ADDRESS);
   int j = 0;
   for(int i = 0; i < 16; i += 2){ // for all 8 rows
@@ -127,7 +126,7 @@ void logicalFrame(){
     physicalFrameArr[i] = warpFrame(logicalFrameArr[i]);
     printf("%d\n", logicalFrameArr[i]);
   }
-  writeI2cBytes(physicalFrameArr);
+  writeMatrixByBytes(physicalFrameArr);
 }
 
 void displayMatrix(char* display){
