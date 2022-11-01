@@ -12,6 +12,7 @@
 #define I2C_DEVICE_ADDRESS 0x70
 #define SYS_SETUP_REG 0X21
 #define DISPLAY_SETUP_REG 0x81
+#define EMPTY 0
 
 static unsigned char logicalFrameArr[NUMBER_OF_MATRIX_ROWS];
 static unsigned char physicalFrameArr[NUMBER_OF_MATRIX_ROWS*2];
@@ -89,9 +90,9 @@ typedef struct {
     char digit; // 0-9 or . or empty space
     char cols; // how wide is this character in terms of columns
     char rowBitArr[NUMBER_OF_MATRIX_ROWS]; // represents each row of bits of the char
-} charInfo;
+} matrixData;
 
-static charInfo charInfoMatrix [] = { // holds all the bit data for each row for every character that may need to be displayed
+static matrixData matrix [] = { // holds all the bit data for each row for every character that may need to be displayed
     {'0', 4, {0x20, 0x50, 0x50, 0x50, 0x50, 0x50, 0x20, 0x00}},
     {'1', 4, {0x20, 0x30, 0x20, 0x20, 0x20, 0x20, 0x70, 0x00}},
     {'2', 4, {0x20, 0x50, 0x40, 0x20, 0x20, 0x10, 0x70, 0x00}},
@@ -106,36 +107,33 @@ static charInfo charInfoMatrix [] = { // holds all the bit data for each row for
     {' ', 4, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}},
 };
 
-#define EMPTY 0
-charInfo* searchForCharInfo(char c){ // searches for a char and then returns the address if it is found
-    for(int i = 0; charInfoMatrix[i].digit != EMPTY; i++){
-      if (charInfoMatrix[i].digit == c){
-        return &charInfoMatrix[i];
+matrixData* searchForHexData(char objectMatrix){ // searches for a char and then returns the address if it is found
+    for(int i = 0; matrix[i].digit != EMPTY; i++){
+      if (matrix[i].digit == objectMatrix){
+        return &matrix[i];
       }
     }
     return NULL;
 }
 
-char shiftLeftOnMatrixBy(int x, char c){ //shiftLeftBy(2,'1')
-  if(x >= 0){
-    return c >> x;
+char shiftLeftOnMatrixBy(int shiftAmountInBytes, char rowValue){ //shiftLeftBy(2,'1')
+  if(shiftAmountInBytes >= 0){
+    return rowValue >> shiftAmountInBytes;
   }
   else{
-    return c << -1*x; //do nothing
+    return rowValue << -shiftAmountInBytes;
   }
   return 0;
 }
 
-
+unsigned char warpFrame(unsigned char logicalFrame){
+  unsigned char physicalRows = ((logicalFrame >> 1) | (logicalFrame << 7));
+  return physicalRows;
+}
 
 void logicalFrame(){
   for(int i = 0; i < NUMBER_OF_MATRIX_ROWS; i++){
-    //unsigned char logicalRows = logicalFrameArr[i]; // use [i] or [NUMBER_OF_MATRIX_ROWS - i - 1] instead to flip the direction.
-
-    unsigned char physicalRows = ((logicalFrameArr[i] >> 1) | (logicalFrameArr[i] << 7)); // & 0xFF;
-
-    physicalFrameArr[i] = physicalRows;
-    physicalFrameArr[i*2 + 1] = 0x00; // might not be necessary
+    physicalFrameArr[i] = warpFrame(logicalFrameArr[i]);
     printf("%d\n", logicalFrameArr[i]);
   }
   writeI2cBytes(physicalFrameArr);
@@ -148,10 +146,10 @@ void displayMatrix(char* display){
     current = *display; 
 
   }
-  charInfo* currentCharInfo = searchForCharInfo(current);
-  printf("search returns %d\n",searchForCharInfo(current)->cols);
-  char* charRowByRowBits = currentCharInfo->rowBitArr; 
-  int charCurrentColumns = currentCharInfo->cols;
+  matrixData* currentMatrixData = searchForHexData(current);
+  printf("search returns %d\n",searchForHexData(current)->cols);
+  char* charRowByRowBits = currentMatrixData->rowBitArr; 
+  int charCurrentColumns = currentMatrixData->cols;
   printf("current columns is %d\n", charCurrentColumns);
   for(int col = 0; col < NUMBER_OF_MATRIX_COLS; col+=charCurrentColumns){ // go through all columns
     current = ' '; // initialize the current char to be empty
@@ -161,12 +159,12 @@ void displayMatrix(char* display){
     }
     printf("current is %c\n",current);
 
-    currentCharInfo = searchForCharInfo(current);
-    printf("search returns %p\n", searchForCharInfo(current));
-    charRowByRowBits = currentCharInfo->rowBitArr; //charInfo or charInfoMatrix
-    printf("currentCharInfo is %d\n", currentCharInfo->rowBitArr[1]);
+    currentMatrixData = searchForHexData(current);
+    printf("search returns %p\n", searchForHexData(current));
+    charRowByRowBits = currentMatrixData->rowBitArr; //charInfo or charInfoMatrix
+    printf("currentMatrixData is %d\n", currentMatrixData->rowBitArr[1]);
 
-    charCurrentColumns = currentCharInfo->cols;
+    charCurrentColumns = currentMatrixData->cols;
 
     for(int i = 0; i < NUMBER_OF_MATRIX_ROWS; i++){ // for every row
       int n = NUMBER_OF_MATRIX_COLS - col - charCurrentColumns;
@@ -174,18 +172,13 @@ void displayMatrix(char* display){
       printf("rowbits before shifting are %d\n", charRowByRowBits[i]);
       char rowBits = shiftLeftOnMatrixBy(n,charRowByRowBits[i]); //shift each digit left on the display with a right bitwise shift (>>)
       printf("rowbits are %d\n", rowBits);
-      logicalFrameArr[i] |= rowBits;
+      logicalFrameArr[i] = logicalFrameArr[i] | rowBits;
     }
-
-   
-    }
+  }
    logicalFrame();
   }
 
-
-
-
-void displayInteger(int i){
+void displayInt(int i){
   if(i > 99){
     i = 99;
   }
@@ -199,7 +192,7 @@ void displayInteger(int i){
   }
 }
 
-void displayDouble(double d){ 
+void displayDec(double d){ 
   if(d > 9.9){
     d = 9.9;
   }

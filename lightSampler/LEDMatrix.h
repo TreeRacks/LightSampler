@@ -15,8 +15,9 @@ void writeI2cBytes(unsigned char* physicalFrameValues);
 
 void initializeStartRegisters();
 void displayMatrix(char* display);
+unsigned char warpFrame(unsigned char logicalFrame);
 
-void displayInteger(int i);
-void displayDouble(double d);
+void displayInt(int i);
+void displayDec(double d);
 
 #endif
