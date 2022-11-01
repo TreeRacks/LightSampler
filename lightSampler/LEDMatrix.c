@@ -14,8 +14,8 @@
 #define DISPLAY_SETUP_REG 0x81
 #define EMPTY 0
 
-static unsigned char logicalFrameArr[NUMBER_OF_MATRIX_ROWS];
-static unsigned char physicalFrameArr[NUMBER_OF_MATRIX_ROWS*2];
+static unsigned char logicalFrameArr[numberOfMatrixRows];
+static unsigned char physicalFrameArr[numberOfMatrixRows*2];
 
 // Assume pins already configured for I2C:
 // (bbg)$ config-pin P9_18 i2c
@@ -46,20 +46,11 @@ void writeI2cReg(int i2cFileDesc, unsigned char regAddr, unsigned char value)
 
 void writeI2cBytes(unsigned char* physicalFrameValues){
   int i2cFileDesc = initI2cBus(I2CDRV_LINUX_BUS1, I2C_DEVICE_ADDRESS);
-  // for(int i = 0; i < 16; i += 2){ // for all 8 rows
-  //  for(int j = 0; j < 8; j++){
-  //   writeI2cReg(i2cFileDesc, i, physicalFrameValues[j]);
-  //     printf("%c\n", physicalFrameValues[j]);
-      writeI2cReg(i2cFileDesc, 0x00, physicalFrameValues[0]);
-      writeI2cReg(i2cFileDesc, 0x02, physicalFrameValues[1]);
-      writeI2cReg(i2cFileDesc, 0x04, physicalFrameValues[2]);
-      writeI2cReg(i2cFileDesc, 0x06, physicalFrameValues[3]);
-      writeI2cReg(i2cFileDesc, 0x08, physicalFrameValues[4]);
-      writeI2cReg(i2cFileDesc, 0x0A, physicalFrameValues[5]);
-      writeI2cReg(i2cFileDesc, 0x0C, physicalFrameValues[6]);
-      writeI2cReg(i2cFileDesc, 0x0E, physicalFrameValues[7]);
-  //   }
-  // }
+  int j = 0;
+  for(int i = 0; i < 16; i += 2){ // for all 8 rows
+      writeI2cReg(i2cFileDesc, i, physicalFrameValues[j]);
+      j++;
+    }
 }
 
 unsigned char readI2cReg(int i2cFileDesc, unsigned char regAddr)
@@ -88,23 +79,23 @@ void initializeStartRegisters(){
 
 typedef struct {
     char digit; // 0-9 or . or empty space
+    char rowBitArr[numberOfMatrixRows]; // represents each row of bits of the char
     char cols; // how wide is this character in terms of columns
-    char rowBitArr[NUMBER_OF_MATRIX_ROWS]; // represents each row of bits of the char
 } matrixData;
 
 static matrixData matrix [] = { // holds all the bit data for each row for every character that may need to be displayed
-    {'0', 4, {0x20, 0x50, 0x50, 0x50, 0x50, 0x50, 0x20, 0x00}},
-    {'1', 4, {0x20, 0x30, 0x20, 0x20, 0x20, 0x20, 0x70, 0x00}},
-    {'2', 4, {0x20, 0x50, 0x40, 0x20, 0x20, 0x10, 0x70, 0x00}},
-    {'3', 4, {0x30, 0x40, 0x40, 0x70, 0x40, 0x40, 0x30, 0x00}},
-    {'4', 4, {0x40, 0x60, 0x50, 0x50, 0x70, 0x40, 0x40, 0x00}},
-    {'5', 4, {0x70, 0x10, 0x10, 0x70, 0x40, 0x50, 0x20, 0x00}},
-    {'6', 4, {0x60, 0x10, 0x10, 0x30, 0x50, 0x50, 0x20, 0x00}},
-    {'7', 4, {0x70, 0x40, 0x40, 0x40, 0x20, 0x20, 0x20, 0x00}},
-    {'8', 4, {0x20, 0x50, 0x50, 0x20, 0x50, 0x50, 0x20, 0x00}},
-    {'9', 4, {0x20, 0x50, 0x50, 0x60, 0x40, 0x40, 0x30, 0x00}},
-    {'.', 1, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40}},
-    {' ', 4, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}},
+    {' ', {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 4},
+    {'0', {0x20, 0x50, 0x50, 0x50, 0x50, 0x50, 0x20, 0x00}, 4},
+    {'1', {0x20, 0x30, 0x20, 0x20, 0x20, 0x20, 0x70, 0x00}, 4},
+    {'2', {0x20, 0x50, 0x40, 0x20, 0x20, 0x10, 0x70, 0x00}, 4},
+    {'3', {0x30, 0x40, 0x40, 0x70, 0x40, 0x40, 0x30, 0x00}, 4},
+    {'4', {0x40, 0x60, 0x50, 0x50, 0x70, 0x40, 0x40, 0x00}, 4},
+    {'5', {0x70, 0x10, 0x10, 0x70, 0x40, 0x50, 0x20, 0x00}, 4},
+    {'6', {0x60, 0x10, 0x10, 0x30, 0x50, 0x50, 0x20, 0x00}, 4},
+    {'7', {0x70, 0x40, 0x40, 0x40, 0x20, 0x20, 0x20, 0x00}, 4},
+    {'8', {0x20, 0x50, 0x50, 0x20, 0x50, 0x50, 0x20, 0x00}, 4},
+    {'9', {0x20, 0x50, 0x50, 0x60, 0x40, 0x40, 0x30, 0x00}, 4},
+    {'.', {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40}, 1},
 };
 
 matrixData* searchForHexData(char objectMatrix){ // searches for a char and then returns the address if it is found
@@ -132,7 +123,7 @@ unsigned char warpFrame(unsigned char logicalFrame){
 }
 
 void logicalFrame(){
-  for(int i = 0; i < NUMBER_OF_MATRIX_ROWS; i++){
+  for(int i = 0; i < numberOfMatrixRows; i++){
     physicalFrameArr[i] = warpFrame(logicalFrameArr[i]);
     printf("%d\n", logicalFrameArr[i]);
   }
@@ -140,18 +131,16 @@ void logicalFrame(){
 }
 
 void displayMatrix(char* display){
-  
   char current = ' '; // initialize the current char to be empty
   if(*display != EMPTY){
-    current = *display; 
-
+    current = *display;
   }
   matrixData* currentMatrixData = searchForHexData(current);
   printf("search returns %d\n",searchForHexData(current)->cols);
   char* charRowByRowBits = currentMatrixData->rowBitArr; 
   int charCurrentColumns = currentMatrixData->cols;
   printf("current columns is %d\n", charCurrentColumns);
-  for(int col = 0; col < NUMBER_OF_MATRIX_COLS; col+=charCurrentColumns){ // go through all columns
+  for(int col = 0; col < numberOfMatrixCols; col+=charCurrentColumns){ // go through all columns
     current = ' '; // initialize the current char to be empty
     if(*display != EMPTY){
       current = *display;
@@ -166,17 +155,17 @@ void displayMatrix(char* display){
 
     charCurrentColumns = currentMatrixData->cols;
 
-    for(int i = 0; i < NUMBER_OF_MATRIX_ROWS; i++){ // for every row
-      int n = NUMBER_OF_MATRIX_COLS - charCurrentColumns - col;
-      printf("n is %d\n", n);
+    for(int i = 0; i < numberOfMatrixRows; i++){ // for every row
+      int shiftAmountInBytes = numberOfMatrixCols - charCurrentColumns - col;
+      printf("n is %d\n", shiftAmountInBytes);
       printf("rowbits before shifting are %d\n", charRowByRowBits[i]);
-      char rowBits = shiftLeftOnMatrixBy(n,charRowByRowBits[i]); //shift each digit left on the display with a right bitwise shift (>>)
+      char rowBits = shiftLeftOnMatrixBy(shiftAmountInBytes,charRowByRowBits[i]); //shift each digit left on the display with a right bitwise shift (>>)
       printf("rowbits are %d\n", rowBits);
       logicalFrameArr[i] = logicalFrameArr[i] | rowBits;
     }
   }
    logicalFrame();
-  }
+}
 
 void displayInt(int i){
   if(i > 99){
@@ -204,5 +193,4 @@ void displayDec(double d){
     snprintf(buff, 10, "%f", d);
     displayMatrix(buff); //do some math: eg. from 0-4096 to 0-99
   }
-    
 }

@@ -33,7 +33,7 @@ int main(){
   // writeI2cReg(i2cFileDesc, 0x0C, 0x02); 
   // writeI2cReg(i2cFileDesc, 0x0E, 0x00);
   
-  displayInt(77);
+  displayDec(7.7);
   //writeI2cReg(i2cFileDesc, 0x00, 0x40);
   // Drive an hour-glass looking character
   // (Like an X with a bar on top & bottom)
