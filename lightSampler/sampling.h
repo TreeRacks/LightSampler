@@ -1,16 +1,12 @@
 // sampler.h
 // Module to sample light levels in the background (thread).
 // It provides access to the raw samples and then deletes them.
-#ifndef _SAMPLER_H_
-#define _SAMPLER_H_
-
-#define A2D_FILE "/sys/bus/iio/devices/iio:device0/in_voltage1_raw"
-
+#ifndef _SAMPLING_H_
+#define _SAMPLING_H_
 typedef struct {
  double sampleInV;
  long long timestampInNanoS;
 } samplerDatapoint_t;
-int readingLightSampler();
 // Begin/end the background thread which samples light levels.
 void Sampler_startSampling(void);
 void Sampler_stopSampling(void);

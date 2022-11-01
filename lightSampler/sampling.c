@@ -1,27 +1,31 @@
-#include <linux/i2c.h>
-#include <linux/i2c-dev.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <pthread.h>
+#include <sys/types.h>
 #include "sampling.h"
 
-int readingLightSampler(){
-    // Open file
-  FILE *f = fopen(A2D_FILE, "r");
-  if (!f) {
-    printf("ERROR: Unable to open voltage input file. Cape loaded?\n");
-    printf(" Check /boot/uEnv.txt for correct options.\n");
-    exit(-1);
-  }
-  // Get reading
-  int a2dReading = 0;
-  int itemsRead = fscanf(f, "%d", &a2dReading);
-  if (itemsRead <= 0) {
-    printf("ERROR: Unable to read values from voltage input file.\n");
-    exit(-1);
-  }
-  // Close file
-  fclose(f);
-  return a2dReading;
+long long totalSamples = 0;
+static samplerDatapoint_t *sampleHistory = NULL;
+pthread_mutex_t historyMutex = PTHREAD_MUTEX_INITIALIZER;
+//pthread_mutex_init(historyMutex, NULL);
+
+void lockMutex(){
+    pthread_mutex_lock(&historyMutex);
+}
+
+void unlockMutex(){
+    pthread_mutex_unlock(&historyMutex);
+}
+
+static void sampling(void* args){
+
+}
+
+void Sampler_startSampling(void){
+    lockMutex();
+    sampleHistory = malloc(sizeof(*sampleHistory) * 4096*10);
+    //memset(sampleHistory, 0, 4096*10 * sizeof(*sampleHistory));
 }
