@@ -11,8 +11,19 @@ static long long minInterval, maxInterval, averageInterval = 0;
 static int amountOfDips = 0;
 static long long lastTimeSample = 0;
 
+static void calculateAverageExpV(samplerDatapoint_t sampleV[], int i){
+    double currentAverageV = 0;
+    currentAverageV = sampleV[i].sampleInV;
+    if(averageSampleV == 0){
+        averageSampleV = currentAverageV;
+    } else{
+        averageSampleV =  averageSampleV* WEIGHT + (1-WEIGHT)*currentAverageV;
+    }
+}
+
 static void settingMaxMinSampleV(samplerDatapoint_t sampleV[]){
     for(int i = 0; i < Sampler_getNumSamplesInHistory(); i++){
+        long long sumSamplerV
         double samplerVoltage = sampleV[i].sampleInV;
         if(i == FIRSTSAMPLE){
             maxSampleV = samplerVoltage;
@@ -22,9 +33,8 @@ static void settingMaxMinSampleV(samplerDatapoint_t sampleV[]){
         } else if(maxSampleV < samplerVoltage){
             maxSampleV = samplerVoltage;
         }
-        
+        calculateAverageExpV(sampleV, i);
     }
-
 }
 
 static long long initializingLastSampleTime(samplerDatapoint_t sampleV[]){

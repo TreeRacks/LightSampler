@@ -55,7 +55,7 @@ double Joystick_readY()
 
 double joyStickCalculationX(){
   double read_x = Joystick_readX();
-
+  //to get interval [-1,1]
   double p2 = (double)read_x/ 4095;
   double x = -1*(p2 -0.5)*2;
 
@@ -64,7 +64,7 @@ double joyStickCalculationX(){
 
 double joyStickCalculationY(){
   double read_y = Joystick_readY();
-
+  //to get interval [-1,1]
   double p1 = (double)read_y/ 4095;
   double y = -1*(p1 -0.5)*2;
   return y;
