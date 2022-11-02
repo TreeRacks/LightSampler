@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
+#include <stdio.h>
 
 static double minSampleV, maxSampleV, averageSampleV = 0; 
 static long long minInterval, maxInterval, averageInterval = 0;
@@ -27,11 +28,13 @@ static void *analyzing(void* args){
         lockMutex();
         {
             long long currentNumberOfSample = Sampler_getNumSamplesTaken();
+
+            amountOfDips = getDips();
             settingMaxMinSampleV(sampleValue);
             settingMaxMinInterval(sampleValue);
-            printf("Interval ms (%f, %f) avg=%f", minInterval/1000000, maxInterval/1000000, averageInterval/1000000);
+            printf("Interval ms (%.3f, %.3f) avg=%.3f", minInterval/1000000.0, maxInterval/1000000.0, averageInterval/1000000.0);
             printf("    Samples V (%f, %f) avg=%f", minSampleV, maxSampleV, averageSampleV);
-            //printf("    # Dips: %d", numberOfDips);
+            printf("    # Dips: %d", amountOfDips);
             printf("    # Samples: %lld", currentNumberOfSample - previousNumberOfSample);
             previousNumberOfSample = currentNumberOfSample;
         }
@@ -42,20 +45,25 @@ static void *analyzing(void* args){
     return NULL;
 }
 
-static void calculateAverageExpV(samplerDatapoint_t sampleVaue[], int i){
+static int getDips(samplerDatapoint_t sampleValue[], int size, double avg){
+
+}
+
+
+static void calculateAverageExpV(samplerDatapoint_t sampleValue[], int i){
     double currentAverageV = 0;
-    currentAverageV = sampleVaue[i].sampleInV;
+    currentAverageV = sampleValue[i].sampleInV;
     if(averageSampleV == 0){
         averageSampleV = currentAverageV;
     } else{
         averageSampleV =  averageSampleV* WEIGHT + (1-WEIGHT)*currentAverageV;
     }
+
 }
 
-static void settingMaxMinSampleV(samplerDatapoint_t sampleVaue[]){
+static void settingMaxMinSampleV(samplerDatapoint_t sampleValue[]){
     for(int i = 0; i < Sampler_getNumSamplesInHistory(); i++){
-        long long sumSamplerV
-        double samplerVoltage = sampleVaue[i].sampleInV;
+        double samplerVoltage = sampleValue[i].sampleInV;
         if(i == FIRSTSAMPLE){
             maxSampleV = samplerVoltage;
             minSampleV = samplerVoltage;
@@ -64,14 +72,15 @@ static void settingMaxMinSampleV(samplerDatapoint_t sampleVaue[]){
         } else if(maxSampleV < samplerVoltage){
             maxSampleV = samplerVoltage;
         }
-        calculateAverageExpV(sampleV, i);
+        calculateAverageExpV(sampleValue, i);
     }
 }
 
-static long long initializingLastSampleTime(samplerDatapoint_t sampleVaue[]){
+static long long initializingLastSampleTime(samplerDatapoint_t sampleValue[]){
     if(lastTimeSample == EMPTY){
-        lastTimeSample = sampleVaue[0].timestampInNanoS;
+        lastTimeSample = sampleValue[0].timestampInNanoS;
     }
+    return 0;
 }
 
 static void calculateAverageInterval(long long sampleTimeSum){
@@ -82,15 +91,15 @@ static void calculateAverageInterval(long long sampleTimeSum){
     }
 }
 
-static void settingMaxMinInterval(samplerDatapoint_t sampleVaue[]){
+static void settingMaxMinInterval(samplerDatapoint_t sampleValue[]){
     long long currentSampleTime, calculatedSampleTime, sampleTimeSum = 0;
     //not sure if needed
     // if(Sampler_getNumSamplesInHistory() <= 0){
     //     exit(1);
     // }
-    initializingLastSampleTime(sampleVaue);
+    initializingLastSampleTime(sampleValue);
     for(int i = 0; i < Sampler_getNumSamplesInHistory(); i++){
-        currentSampleTime = sampleVaue[i].timestampInNanoS;
+        currentSampleTime = sampleValue[i].timestampInNanoS;
         calculatedSampleTime = currentSampleTime - lastTimeSample;
         sampleTimeSum = sampleTimeSum + calculatedSampleTime;
 

@@ -24,4 +24,10 @@ samplerDatapoint_t* Sampler_extractAllValues();
 int Sampler_getNumSamplesInHistory();
 // Get the total number of light level samples taken so far.
 long long Sampler_getNumSamplesTaken(void);
+
+long long getTimeInMs(void);
+long long getTimeInNs(void);
+void sleepForMs(long long delayInMs);
+long long intervalSinceTimeStarted(long long initialTime);
+
 #endif
