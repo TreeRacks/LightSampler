@@ -67,7 +67,6 @@ double joyStickCalculationY(){
 
   double p1 = (double)read_y/ 4095;
   double y = -1*(p1 -0.5)*2;
-
   return y;
 }
 

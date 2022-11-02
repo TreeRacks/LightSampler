@@ -2,6 +2,7 @@
 #include "joystick.h"
 #include "sampling.h"
 #include "mainHelper.h"
+#include "displayJoystick.h"
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -21,9 +22,6 @@ int main(){
   configureI2C();
   initializeStartRegisters();
   int i2cFileDesc = initI2cBus(I2CDRV_LINUX_BUS1, I2C_DEVICE_ADDRESS);
-  for(int i = 0; i < 16; i+=2){
-    writeI2cReg(i2cFileDesc, i, 0x00);
-   }
   // writeI2cReg(i2cFileDesc, 0x00, 0x02);
   // writeI2cReg(i2cFileDesc, 0x02, 0x03);
   // writeI2cReg(i2cFileDesc, 0x04, 0x82);
@@ -32,8 +30,8 @@ int main(){
   // writeI2cReg(i2cFileDesc, 0x0A, 0x02); 
   // writeI2cReg(i2cFileDesc, 0x0C, 0x02); 
   // writeI2cReg(i2cFileDesc, 0x0E, 0x00);
-  
-  displayDec(7.7);
+  displayJoystickValues();
+  //displayDec(7.7);
   //writeI2cReg(i2cFileDesc, 0x00, 0x40);
   // Drive an hour-glass looking character
   // (Like an X with a bar on top & bottom)

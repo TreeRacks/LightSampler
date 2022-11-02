@@ -130,6 +130,8 @@ void logicalFrame(){
 }
 
 void displayMatrix(char* display){
+  //cleaning logicalFrameArr from previous values
+  memset(logicalFrameArr,EMPTY, 8);
   char current = ' '; // initialize the current char to be empty
   if(*display != EMPTY){
     current = *display;

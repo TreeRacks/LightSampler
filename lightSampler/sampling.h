@@ -7,6 +7,10 @@ typedef struct {
  double sampleInV;
  long long timestampInNanoS;
 } samplerDatapoint_t;
+long long getTimeInNs(void);
+long long getTimeInMs(void);
+void sleepForMs(long long delayInMs);
+long long intervalSinceTimeStarted(long long initialTime);
 // Begin/end the background thread which samples light levels.
 void Sampler_startSampling(void);
 void Sampler_stopSampling(void);
