@@ -3,7 +3,7 @@
 
 #define I2C_DEVICE_ADDRESS 0x70
 #define JoystickLimit 0.5
-void displayJoystickValues();
+static void* displayJoystickValues(void* arg);
 void clearDisplay();
 
 #endif

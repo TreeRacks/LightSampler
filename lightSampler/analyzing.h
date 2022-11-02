@@ -12,5 +12,10 @@ static void calculateAverageInterval(long long sampleTimeSum);
 static long long initializingLastSampleTime(samplerDatapoint_t sampleV[]);
 static void *analyzing(void* args);
 static int  getDips(samplerDatapoint_t sampleValue[], int size, double avg);
+void getMaxValue();
+void getMinValue();
+void getMaxInterval();
+void getMinInterval();
+void getNumberOfDips();
 
 #endif

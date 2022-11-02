@@ -116,3 +116,48 @@ static void settingMaxMinInterval(samplerDatapoint_t sampleValue[]){
     calculateAverageInterval(sampleTimeSum);
 }
 
+void getMinInterval(){
+    lock()
+    {
+        long long minSampleInterval = minInterval;
+    }
+    unlock();
+    return minSampleInterval;
+}
+
+void getMaxInterval(){
+    lock()
+    {
+        long long maxSampleInterval = maxInterval;
+    }
+    unlock();
+    return maxSampleInterval;
+}
+
+
+void getMinValue(){
+    lock()
+    {
+        long long minSampleValue = minSampleV;
+    }
+    unlock();
+    return minSampleValue;
+}
+
+void getMaxValue(){
+    lock()
+    {
+        long long maxSampleValue = maxSampleV;
+    }
+    unlock();
+    return maxSampleValue;
+}
+
+void getNumberOfDips(){
+    lock()
+    {
+        long long dips = amountOfDips;
+    }
+    unlock();
+    return dips;
+}

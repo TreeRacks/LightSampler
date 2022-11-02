@@ -7,24 +7,28 @@
 #include <time.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <pthread.h>
 
-static bool stopButtonPress = false;
+pthread_t thread;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static bool stopDisplay = false;
 
-void displayJoystickValues(){
-    while(!stopButtonPress){
+static void* displayJoystickValues(void* arg){
+    while(!stopDisplay){
+
         clearDisplay();
         if(JoystickLimit < joyStickCalculationY()){
-            displayDec(1.0);
+            displayDec(getMaxValue());
         } else if(-JoystickLimit > joyStickCalculationY()){
-            displayDec(9.0); 
+            displayDec(getMinValue()); 
         } else if(JoystickLimit < joyStickCalculationX()){
-            displayDec(1.1);
+            displayDec(getMaxInterval() / 1000000.0);
         } else if(-JoystickLimit > joyStickCalculationX()){
-            displayDec(9.9);
+            displayDec(getMinInterval() / 1000000.0);
         } else{
-            
+            displayInt(getNumberOfDips());
         }
-        sleepForMs(100);
+        sleepForMs(200);
     }
 }
 
@@ -33,4 +37,13 @@ void clearDisplay(){
     for(int i = 0; i < 16; i+=2){
         writeI2cReg(i2cFileDesc, i, 0x00);
     }
+}
+
+void displayJoystick_startDisplay(){
+    pthread_create(&thread, NULL, displayJoystickValues, NULL);
+}
+
+void displayJoystick_stopDisplay(){
+    stopDisplay = true;
+    pthread_join(thread, NULL);
 }

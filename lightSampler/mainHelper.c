@@ -27,3 +27,40 @@ void runCommand(char* command)
  printf(" exit code: %d\n", exitCode);
  }
 }
+
+int readFromFileToScreen(char *button)
+{
+    FILE *pFile = fopen(button, "r");
+    if (pFile == NULL) {
+        printf("ERROR: Unable to open file (%s) for read\n", button);
+        exit(-1);
+    }
+    // Read string (line)
+    const int MAX_LENGTH = 1024;
+    char buff[MAX_LENGTH];
+    fgets(buff, MAX_LENGTH, pFile);
+    // Close
+    fclose(pFile);
+    //printf("Read: '%s'\n", buff);
+    return(atoi(buff));
+}
+
+void writingToGPIO(float value){
+    FILE *pFile = fopen("/sys/class/gpio/export", "w");
+    if (pFile == NULL) {
+        printf("ERROR: Unable to open export file.\n");
+        exit(1);
+    }
+    fprintf(pFile, "%f", value);
+    fclose(pFile);
+}
+
+void pressButtonToEndProgram(){
+    runCommand("config-pin p8.43 gpio");
+    runCommand("config-pin -q p8.43");
+    writingToGPIO(72);
+    while(readFromFileToScreen(userButton) == 1){
+        printf("Shutting down...");
+    }
+}
+
