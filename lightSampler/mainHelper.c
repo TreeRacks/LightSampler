@@ -1,6 +1,7 @@
 #include "mainHelper.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 void configureI2C(){
     runCommand("config-pin P9_18 i2c");
@@ -55,12 +56,19 @@ void writingToGPIO(float value){
     fclose(pFile);
 }
 
+bool UserButtonPressed(){
+    return (readFromFileToScreen(userButton) == 0);
+}
+
 void pressButtonToEndProgram(){
     runCommand("config-pin p8.43 gpio");
     runCommand("config-pin -q p8.43");
     writingToGPIO(72);
-    while(readFromFileToScreen(userButton) == 1){
-        printf("Shutting down...");
+    printf("Starting to sample data...\n");
+    while(!UserButtonPressed()){
+        if(UserButtonPressed){
+            printf("Shutting down...\n");
+        }
     }
 }
 

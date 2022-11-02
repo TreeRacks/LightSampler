@@ -23,7 +23,19 @@ int main(){
   initializeStartRegisters();
   int i2cFileDesc = initI2cBus(I2CDRV_LINUX_BUS1, I2C_DEVICE_ADDRESS);
   
-  
+  //Starting new threads
+  displayJoystick_startDisplay();
+  Sampler_startSampling();
+  startAnalyzing();
+
+  //On main thread, just stay in loop till user button pressed to runs clean up
+  pressButtonToEndProgram();
+
+  //cleaning up threads
+  displayJoystick_stopDisplay();
+  Sampler_stopSampling();
+  stopAnalyzing();
+
   // Read a register:
   unsigned char regVal = readI2cReg(i2cFileDesc, REG_OUTA);
   printf("Reg OUT-A = 0x%02x\n", regVal);
@@ -34,6 +46,6 @@ int main(){
     //     printf("\n");
     //     printf("The y reading is%f", Joystick_readY());
     // }
-  printf("Hello world!\n");
+  printf("\nDone shutdown! Goodbye!");
   return 0;
 }
