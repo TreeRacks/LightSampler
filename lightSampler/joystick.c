@@ -58,6 +58,7 @@ double joyStickCalculationX(){
   //to get interval [-1,1]
   double p2 = (double)read_x/ 4095;
   double x = -1*(p2 -0.5)*2;
+  printf("x is %f\n", x);
 
   return x; 
 }

@@ -2,6 +2,7 @@
 #include "joystick.h"
 #include "LEDMatrix.h"
 #include "sampling.h"
+#include "analyzing.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -9,27 +10,29 @@
 #include <stdbool.h>
 #include <pthread.h>
 
-pthread_t thread;
+pthread_t threadJoystick;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static bool stopDisplay = false;
+
 
 static void* displayJoystickValues(void* arg){
     while(!stopDisplay){
 
         clearDisplay();
-        if(JoystickLimit < joyStickCalculationY()){
+        if(JoystickLimit < joyStickCalculationY()){ //up
             displayDec(getMaxValue());
-        } else if(-JoystickLimit > joyStickCalculationY()){
+        } else if(-JoystickLimit > joyStickCalculationY()){ //down
             displayDec(getMinValue()); 
-        } else if(JoystickLimit < joyStickCalculationX()){
+        } else if(JoystickLimit < joyStickCalculationX()){ //right
             displayDec(getMaxInterval() / 1000000.0);
-        } else if(-JoystickLimit > joyStickCalculationX()){
+        } else if(-JoystickLimit > joyStickCalculationX()){ //left
             displayDec(getMinInterval() / 1000000.0);
         } else{
-            displayInt(getNumberOfDips());
+            displayInt(getNumberOfDips()); //centre
         }
         sleepForMs(200);
     }
+    return NULL;
 }
 
 void clearDisplay(){
@@ -40,10 +43,10 @@ void clearDisplay(){
 }
 
 void displayJoystick_startDisplay(){
-    pthread_create(&thread, NULL, displayJoystickValues, NULL);
+    pthread_create(&threadJoystick, NULL, displayJoystickValues, NULL);
 }
 
 void displayJoystick_stopDisplay(){
     stopDisplay = true;
-    pthread_join(thread, NULL);
+    pthread_join(threadJoystick, NULL);
 }

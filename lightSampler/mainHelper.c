@@ -1,7 +1,9 @@
 #include "mainHelper.h"
+#include "sampling.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+
 
 void configureI2C(){
     runCommand("config-pin P9_18 i2c");
@@ -66,7 +68,8 @@ void pressButtonToEndProgram(){
     writingToGPIO(72);
     printf("Starting to sample data...\n");
     while(!UserButtonPressed()){
-        if(UserButtonPressed){
+        sleepForMs(100);
+        if(UserButtonPressed() == true){
             printf("Shutting down...\n");
         }
     }

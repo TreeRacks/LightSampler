@@ -4,40 +4,60 @@
 #include <string.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <fcntl.h>
 #include <sys/types.h>
+#include <sys/syscall.h>
+#include <malloc.h>
+#include <sched.h>
+#include <math.h>
 #include "sampling.h"
 
+#define A2D_FILE "/sys/bus/iio/devices/iio:device0/in_voltage1_raw"
 #define EMPTY 0
 
 bool threadIsStopped = false;
 long long totalSamples = 0;
 void *defaultArg = NULL;
-int size = 0;
-samplerDatapoint_t* outputArray = NULL;
-pthread_t thread;
-pthread_mutex_t historyMutex = PTHREAD_MUTEX_INITIALIZER;
+int endOfHistory = 0;
+static samplerDatapoint_t* outputArray = NULL;
+static pthread_t thread;
+static pthread_mutex_t historyMutex = PTHREAD_MUTEX_INITIALIZER;
 //pthread_mutex_init(historyMutex, NULL);
 
-int readingLightSampler(){
+int readingLightSampler(char* buffer, int length){
+    
     // Open file
-  FILE *f = fopen(A2D_FILE, "r");
-  if (!f) {
-    printf("ERROR: Unable to open voltage input file. Cape loaded?\n");
-    printf(" Check /boot/uEnv.txt for correct options.\n");
-    exit(-1);
-  }
+    int file = open(A2D_FILE, 0);
+    int bytes = read(file, buffer, length-1);
+    close(file);
+    buffer[bytes] = 0;
+    return bytes;
+}
+//   FILE *f = fopen(A2D_FILE, "r");
+//   if (!f) {
+//     printf("ERROR: Unable to open voltage input file. Cape loaded?\n");
+//     printf(" Check /boot/uEnv.txt for correct options.\n");
+//     exit(-1);
+//   }
   // Get reading
-  int a2dReading = 0;
-  int itemsRead = fscanf(f, "%d", &a2dReading);
-  if (itemsRead <= 0) {
-    printf("ERROR: Unable to read values from voltage input file.\n");
-    exit(-1);
-  }
-  // Close file
-  fclose(f);
-  return a2dReading;
+int readLightAsInt(){
+    int buffLen = 1024;
+    char buff[buffLen];
+    readingLightSampler(buff, buffLen);
+    return atoi(buff);
 
 }
+//   int a2dReading = 0;
+//   int itemsRead = fscanf(f, "%d", &a2dReading);
+//   if (itemsRead <= 0) {
+//     printf("ERROR: Unable to read values from voltage input file.\n");
+//     exit(-1);
+//   }
+//   // Close file
+//   fclose(f);
+//   return a2dReading;
+
+// }
 
 long long getTimeInMs(void){
     struct timespec spec;
@@ -74,55 +94,80 @@ long long intervalSinceTimeStarted(long long initialTime){
 }
 
 
-void lockMutex(){
+static void lockMutex(){
     pthread_mutex_lock(&historyMutex);
 }
 
-void unlockMutex(){
+static void unlockMutex(){
     pthread_mutex_unlock(&historyMutex);
 }
 
-void addSampleToOutputArr(double sampleVoltage){
+static void addSampleToOutputArr(double sampleVoltage){
     lockMutex();
-    outputArray[size].sampleInV = sampleVoltage;
-    outputArray[size].timestampInNanoS = getTimeInNs();
-    size++;
+    {
+    outputArray[endOfHistory].sampleInV = sampleVoltage;
+    outputArray[endOfHistory].timestampInNanoS = getTimeInNs();
+    endOfHistory++;
+    }
     unlockMutex();
 }
 
 static void *sampling(void* args){
+    //printf("you are here outside the while\n");
+    
     while(true){
+        //printf("you are here\n");
+        //printf("thread bool is %d\n", threadIsStopped);
+        
         if(threadIsStopped == false){
+            
             totalSamples+=1;
-            int lightReading = readingLightSampler();
+            int lightReading = readLightAsInt();
+            //printf("lightreading is %d\n", lightReading);
+            
             double lightVoltage = ((double)lightReading/4095) * 1.8;
+            
             addSampleToOutputArr(lightVoltage);
+            
             sleepForMs(1);
         }
         else{
+            //printf("you are here\n");
             return NULL;
         }
     
     }
 }
 
-samplerDatapoint_t *Sampler_extractAllValues(){
-    // samplerDatapoint_t *outputArrayCopy = NULL;
+samplerDatapoint_t *Sampler_extractAllValues(int *length){
+    
+    samplerDatapoint_t *outputArrayCopy = 0;
     lockMutex();
-    // outputArrayCopy = malloc(sizeof(*outputArray) * size);
-    // for(int i = 0; i < size; i++){
-    //     memcpy(&outputArrayCopy[i], &outputArray[i], sizeof(samplerDatapoint_t));
-    // }
-    size = 0;
+    {
+        
+    outputArrayCopy = malloc(sizeof(*outputArray) * endOfHistory);
+    for(int i = 0; i < endOfHistory; i++){
+        memcpy(&outputArrayCopy[i], &outputArray[i], sizeof(samplerDatapoint_t));
+    }
+    int size = endOfHistory;
+    *length = size;
+    endOfHistory = 0;
+    }
     unlockMutex();
-    return outputArray;
+    
+    return outputArrayCopy;
 
 }
 
 void Sampler_startSampling(void){
+    
     lockMutex();
-    samplerDatapoint_t *sampleHistory = malloc(sizeof(*sampleHistory) * 4096*10);
-    memset(sampleHistory, 0, 4096*10 * sizeof(*sampleHistory));
+    {
+        
+    outputArray = malloc(sizeof(*outputArray) * 4096*10);
+    memset(outputArray, 0, 4096*10 * sizeof(*outputArray));
+    
+    }
     unlockMutex();
 
     pthread_attr_t defaultAttr;
@@ -132,23 +177,26 @@ void Sampler_startSampling(void){
     pthread_attr_getschedparam(&defaultAttr, &defaultParam);
     defaultParam.sched_priority +=1;
     pthread_attr_setschedparam(&defaultAttr, &defaultParam);
-
+    
     pthread_create(&thread, &defaultAttr, &sampling, &defaultArg);
+    
+    
 }
 
 void Sampler_stopSampling(void){
     threadIsStopped = true;
     pthread_join(thread, NULL);
     lockMutex();
-
+    {
     memset(outputArray, EMPTY, sizeof(outputArray)*4096*10);
-    size = 0;
-
+    endOfHistory = 0;
+    }
     unlockMutex();
 
 }
 
-int Sampler_getNumberOfSamplesInHistory(){
+int Sampler_getNumSamplesInHistory(){
+    int size = endOfHistory;
     return size;
 }
 

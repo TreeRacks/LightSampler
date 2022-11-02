@@ -2,9 +2,7 @@
 // Module to sample light levels in the background (thread).
 // It provides access to the raw samples and then deletes them.
 #ifndef _SAMPLING_H_
-#define _SAMPLING_H_
-
-#define A2D_FILE "/sys/bus/iio/devices/iio:device0/in_voltage1_raw"
+#define _SAMPLING_H_s
 
 typedef struct {
  double sampleInV;
@@ -19,10 +17,15 @@ void Sampler_stopSampling(void);
 // number of elements in the returned array (output-only parameter).
 // The calling code must call free() on the returned pointer.
 // Note: function provides both data and size to ensure consistency.
+
 samplerDatapoint_t* Sampler_extractAllValues();
+
 // Returns how many valid samples are currently in the history.
+
 int Sampler_getNumSamplesInHistory();
+
 // Get the total number of light level samples taken so far.
+
 long long Sampler_getNumSamplesTaken(void);
 
 long long getTimeInMs(void);

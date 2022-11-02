@@ -124,7 +124,7 @@ unsigned char warpFrame(unsigned char logicalFrame){
 void logicalFrame(){
   for(int i = 0; i < numberOfMatrixRows; i++){
     physicalFrameArr[i] = warpFrame(logicalFrameArr[i]);
-    printf("%d\n", logicalFrameArr[i]);
+    //printf("%d\n", logicalFrameArr[i]);
   }
   writeMatrixByBytes(physicalFrameArr);
 }
@@ -137,31 +137,31 @@ void displayMatrix(char* display){
     current = *display;
   }
   matrixData* currentMatrixData = searchForHexData(current);
-  printf("search returns %d\n",searchForHexData(current)->cols);
+  //printf("search returns %d\n",searchForHexData(current)->cols);
   char* charRowByRowBits = currentMatrixData->rowBitArr; 
   int charCurrentColumns = currentMatrixData->cols;
-  printf("current columns is %d\n", charCurrentColumns);
+  //printf("current columns is %d\n", charCurrentColumns);
   for(int col = 0; col < numberOfMatrixCols; col+=charCurrentColumns){ // go through all columns
     current = ' '; // initialize the current char to be empty
     if(*display != EMPTY){
       current = *display;
       ++display;      
     }
-    printf("current is %c\n",current);
+    //printf("current is %c\n",current);
 
     currentMatrixData = searchForHexData(current);
-    printf("search returns %p\n", searchForHexData(current));
+    //printf("search returns %p\n", searchForHexData(current));
     charRowByRowBits = currentMatrixData->rowBitArr; //charInfo or charInfoMatrix
-    printf("currentMatrixData is %d\n", currentMatrixData->rowBitArr[1]);
+    //printf("currentMatrixData is %d\n", currentMatrixData->rowBitArr[1]);
 
     charCurrentColumns = currentMatrixData->cols;
 
     for(int i = 0; i < numberOfMatrixRows; i++){ // for every row
       int shiftAmountInBytes = numberOfMatrixCols - charCurrentColumns - col;
-      printf("n is %d\n", shiftAmountInBytes);
-      printf("rowbits before shifting are %d\n", charRowByRowBits[i]);
+      //printf("n is %d\n", shiftAmountInBytes);
+      //printf("rowbits before shifting are %d\n", charRowByRowBits[i]);
       char rowBits = shiftLeftOnMatrixBy(shiftAmountInBytes,charRowByRowBits[i]); //shift each digit left on the display with a right bitwise shift (>>)
-      printf("rowbits are %d\n", rowBits);
+      //printf("rowbits are %d\n", rowBits);
       logicalFrameArr[i] = logicalFrameArr[i] | rowBits;
     }
   }
