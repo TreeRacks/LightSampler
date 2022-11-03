@@ -43,7 +43,6 @@ int main(){
   Sampler_stopSampling();
   stopAnalyzing();
 
-  
   close(i2cFileDesc);
   printf("\nDone shutdown! Goodbye!\n");
   return 0;

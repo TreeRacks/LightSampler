@@ -5,11 +5,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include <fcntl.h>
-#include <sys/types.h>
-#include <sys/syscall.h>
 #include <malloc.h>
-#include <sched.h>
-#include <math.h>
 #include "sampling.h"
 
 #define A2D_FILE "/sys/bus/iio/devices/iio:device0/in_voltage1_raw"
@@ -21,7 +17,6 @@ static int endOfHistory = 0;
 static samplerDatapoint_t* outputArray = NULL;
 static pthread_t thread;
 static pthread_mutex_t historyMutex = PTHREAD_MUTEX_INITIALIZER;
-//pthread_mutex_init(historyMutex, NULL);
 
 static int readingLightSampler(){
     char A2D_FILE_VOLTAGE1[500];
@@ -44,17 +39,6 @@ static int readingLightSampler(){
     return a2dReading;
 }
 
-
-long long getTimeInMs(void){
-    struct timespec spec;
-    clock_gettime(CLOCK_REALTIME, &spec);
-    long long seconds = spec.tv_sec;
-    long long nanoSeconds = spec.tv_nsec;
-    long long milliSeconds = seconds * 1000
-    + nanoSeconds / 1000000;
-    return milliSeconds;
-}
-
 long long getTimeInNs(void){
     struct timespec spec;
     clock_gettime(CLOCK_REALTIME, &spec);
@@ -73,13 +57,6 @@ void sleepForMs(long long delayInMs){
     nanosleep(&reqDelay, (struct timespec *) NULL);
 }
 
-long long intervalSinceTimeStarted(long long initialTime){
-    long long currentTime = getTimeInNs();
-    long long interval = currentTime - initialTime;
-    return interval;
-}
-
-
 static void lockMutex(){
     pthread_mutex_lock(&historyMutex);
 }
@@ -91,36 +68,31 @@ static void unlockMutex(){
 static void addSampleToOutputArr(double sampleVoltage){
     lockMutex();
     {
-    outputArray[endOfHistory].sampleInV = sampleVoltage;
-    outputArray[endOfHistory].timestampInNanoS = getTimeInNs();
-    endOfHistory++;
+        outputArray[endOfHistory].sampleInV = sampleVoltage;
+        outputArray[endOfHistory].timestampInNanoS = getTimeInNs();
+        endOfHistory++;
     }
     unlockMutex();
 }
 
 static void *sampling(void* args){
-    //printf("you are here outside the while\n");
     
     while(true){
-        //printf("you are here\n");
-        //printf("thread bool is %d\n", threadIsStopped);
-        
         if(threadIsStopped == false){
+
+            sleepForMs(1);
             
             totalSamples+=1;
+
             int lightReading = readingLightSampler();
-            //printf("lightreading is %d\n", lightReading);
-            
+
             double lightVoltage = ((double)lightReading/4095) * 1.8;
             
             addSampleToOutputArr(lightVoltage);
             
-            sleepForMs(1);
-        }
-        else{
+        } else{
             return NULL;
         }
-    
     }
 }
 
@@ -129,57 +101,49 @@ samplerDatapoint_t *makeCopyOfOutput(){
     outputCopy = malloc(sizeof(*outputArray) * endOfHistory);
     lockMutex();
     {
-    for(int i = 0; i < endOfHistory; i++){
-        memcpy(&outputCopy[i], &outputArray[i], sizeof(samplerDatapoint_t));
-    }
+        for(int i = 0; i < endOfHistory; i++){
+            memcpy(&outputCopy[i], &outputArray[i], sizeof(samplerDatapoint_t));
+        }
     }
     unlockMutex();
     return outputCopy;
 }
 
-samplerDatapoint_t *Sampler_extractAllValues(int *length){
+samplerDatapoint_t *Sampler_extractAllValues(int *len){
     
     samplerDatapoint_t *outputArrayCopy = makeCopyOfOutput();
 
     lockMutex();
     {
-    
-    int size = endOfHistory;
-    *length = size;
-    endOfHistory = 0;
+        int size = endOfHistory;
+        *len = size;
+        endOfHistory = 0;
     }
     unlockMutex();
     
     return outputArrayCopy;
-
 }
 
 void samplerMemoryStartup(){
     lockMutex();
     {
-        
-    outputArray = malloc(sizeof(*outputArray) * 4096*10);
-    memset(outputArray, 0, 4096*10 * sizeof(*outputArray));
-    
+        outputArray = malloc(sizeof(*outputArray) * 4096*10);
+        memset(outputArray, 0, 4096*10 * sizeof(*outputArray));
     }
     unlockMutex();
 }
 
 void Sampler_startSampling(void){
-    
     samplerMemoryStartup();
-    
     pthread_create(&thread, NULL, &sampling, NULL);
-    
-    
 }
 
 
 void samplerMemoryCleanup(){
     lockMutex();
     {
-    memset(outputArray, EMPTY, sizeof(outputArray)*4096*10);
-    endOfHistory = 0;
+        memset(outputArray, EMPTY, sizeof(outputArray)*4096*10);
+        endOfHistory = 0;
     }
     unlockMutex();
 }
@@ -188,7 +152,6 @@ void Sampler_stopSampling(void){
     threadIsStopped = true;
     pthread_join(thread, NULL);
     samplerMemoryCleanup();
-
 }
 
 int Sampler_getNumSamplesInHistory(){

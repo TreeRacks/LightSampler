@@ -7,10 +7,8 @@
 #include <stdio.h>
 
 static double minSampleV, maxSampleV, averageSampleV = 0; 
-static long long minInterval, maxInterval, averageInterval = 0;
+static long long minInterval, maxInterval, averageInterval, lastTimeSample, numberOfSamplesInHistory = 0;
 static int amountOfDips = 0;
-static long long lastTimeSample = 0;
-static long long numberOfSamplesInHistory = 0;
 static pthread_t thread;
 static pthread_mutex_t analyzerMutex = PTHREAD_MUTEX_INITIALIZER;
 static bool threadIsStopped = false;
@@ -24,13 +22,9 @@ void unlockMutex(){
     pthread_mutex_unlock(&analyzerMutex);
 }
 
-
-
-
 static int getDipsInSample(samplerDatapoint_t sampleValue[]){
     bool valueHasDippedBelowAvg = false;
     int dips = 0;
-
     for(int i = 0; i < numberOfSamplesInHistory; i++){
         double difference = (averageSampleV - sampleValue[i].sampleInV); //difference from sample voltage to average. 
         if(valueHasDippedBelowAvg == true){
@@ -58,7 +52,6 @@ static void calculateAverageExpV(samplerDatapoint_t sampleValue[], int i){
     } else{
         averageSampleV =  averageSampleV* WEIGHT + (1-WEIGHT)*currentAverageV;
     }
-
 }
 
 static void settingMaxMinSampleV(samplerDatapoint_t sampleValue[]){
@@ -92,16 +85,11 @@ static void calculateAverageInterval(long long sampleTimeSum){
 
 static void settingMaxMinInterval(samplerDatapoint_t sampleValue[]){
     long long currentSampleTime, calculatedSampleTime, sampleTimeSum = 0;
-    //not sure if needed
-    // if(Sampler_getNumSamplesInHistory() <= 0){
-    //     exit(1);
-    // }
     initializingLastSampleTime(sampleValue);
     for(int i = 0; i < numberOfSamplesInHistory; i++){
         currentSampleTime = sampleValue[i].timestampInNanoS;
         calculatedSampleTime = currentSampleTime - lastTimeSample;
         sampleTimeSum = sampleTimeSum + calculatedSampleTime;
-
         if(i == FIRSTSAMPLE){
             minInterval = calculatedSampleTime;
             maxInterval = calculatedSampleTime;
@@ -120,29 +108,26 @@ static void *analyzing(void* args){
     while(true){
         if(threadIsStopped == false){
         
+        sleepForMs(1000);
+
         samplerDatapoint_t* sampleValue = Sampler_extractAllValues(&numberOfSamplesInHistory);
-        long long currentNumberOfSample = 0;
-         
+        long long currentNumberOfSample = 0; 
 
         lockMutex();
         {
             currentNumberOfSample = Sampler_getNumSamplesTaken();
-            //numberOfSamplesInHistory = Sampler_getNumSamplesInHistory();
-
             amountOfDips = getDipsInSample(sampleValue);
             settingMaxMinSampleV(sampleValue);
             settingMaxMinInterval(sampleValue);
             printf("Interval ms (%.3f, %.3f) avg=%.3f", minInterval/1000000.0, maxInterval/1000000.0, averageInterval/1000000.0);
-            printf("    Samples V (%f, %f) avg=%f", minSampleV, maxSampleV, averageSampleV);
+            printf("    Samples V (%.3f, %.3f) avg=%.3f", minSampleV, maxSampleV, averageSampleV);
             printf("    # Dips: %d", amountOfDips);
             printf("    # Samples: %lld \n", currentNumberOfSample - previousNumberOfSample);
             previousNumberOfSample = currentNumberOfSample;
         }
         unlockMutex();
         free(sampleValue);
-        sleepForMs(1000);
         }
-    
         else{
             return NULL;
         }
