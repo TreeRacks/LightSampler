@@ -27,22 +27,22 @@ void unlockMutex(){
 
 
 
-static int getDipsInSample(samplerDatapoint_t sampleValue[], int size, double avg){
+static int getDipsInSample(samplerDatapoint_t sampleValue[]){
     bool valueHasDippedBelowAvg = false;
     int dips = 0;
 
-    for(int i = 0; i < size; i++){
-        double difference = (sampleValue[i].sampleInV - avg); //difference from sample voltage to average. 
-        //printf("difference is %f\n", difference);
-        if(valueHasDippedBelowAvg == false){
-            if(difference < 0.1){
-                valueHasDippedBelowAvg = true;
-                dips++;
+    for(int i = 0; i < numberOfSamplesInHistory; i++){
+        double difference = (averageSampleV - sampleValue[i].sampleInV); //difference from sample voltage to average. 
+        if(valueHasDippedBelowAvg == true){
+            if(difference < 0.1 - 0.03){
+                valueHasDippedBelowAvg = false;
             }
         }
         else {
-            if(difference < 0.1 - 0.03)
-            valueHasDippedBelowAvg = false;
+            if(difference > 0.1){
+                valueHasDippedBelowAvg = true;
+                dips++;
+            }
         }
     }
     return dips;
@@ -129,7 +129,7 @@ static void *analyzing(void* args){
             currentNumberOfSample = Sampler_getNumSamplesTaken();
             //numberOfSamplesInHistory = Sampler_getNumSamplesInHistory();
 
-            amountOfDips = getDipsInSample(sampleValue, numberOfSamplesInHistory, averageSampleV);
+            amountOfDips = getDipsInSample(sampleValue);
             settingMaxMinSampleV(sampleValue);
             settingMaxMinInterval(sampleValue);
             printf("Interval ms (%.3f, %.3f) avg=%.3f", minInterval/1000000.0, maxInterval/1000000.0, averageInterval/1000000.0);

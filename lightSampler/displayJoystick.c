@@ -11,7 +11,6 @@
 #include <pthread.h>
 
 pthread_t threadJoystick;
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static bool stopDisplay = false;
 
 

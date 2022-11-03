@@ -11,11 +11,8 @@
 int initI2cBus(char* bus, int address);
 void writeI2cReg(int i2cFileDesc, unsigned char regAddr, unsigned char value);
 unsigned char readI2cReg(int i2cFileDesc, unsigned char regAddr);
-void writeMatrixByBytes(unsigned char* physicalFrameValues);
 
 void initializeStartRegisters();
-void displayMatrix(char* display);
-unsigned char warpFrame(unsigned char logicalFrame);
 
 void displayInt(int i);
 void displayDec(double d);

@@ -97,7 +97,7 @@ static matrixData matrix [] = { // holds all the bit data for each row for every
     {'.', {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40}, 1},
 };
 
-matrixData* searchForHexData(char objectMatrix){ // searches for a char and then returns the address if it is found
+static matrixData* searchForHexData(char objectMatrix){ // searches for a char and then returns the address if it is found
     for(int i = 0; matrix[i].digit != EMPTY; i++){
       if (matrix[i].digit == objectMatrix){
         return &matrix[i];
@@ -106,7 +106,7 @@ matrixData* searchForHexData(char objectMatrix){ // searches for a char and then
     return NULL;
 }
 
-char shiftLeftOnMatrixBy(int shiftAmountInBytes, char rowValue){ //shiftLeftBy(2,'1')
+static char shiftLeftOnMatrixBy(int shiftAmountInBytes, char rowValue){ //shiftLeftBy(2,'1')
   if(shiftAmountInBytes >= 0){
     return rowValue >> shiftAmountInBytes;
   }
@@ -116,12 +116,12 @@ char shiftLeftOnMatrixBy(int shiftAmountInBytes, char rowValue){ //shiftLeftBy(2
   return 0;
 }
 
-unsigned char warpFrame(unsigned char logicalFrame){
+static unsigned char warpFrame(unsigned char logicalFrame){
   unsigned char physicalRows = ((logicalFrame >> 1) | (logicalFrame << 7));
   return physicalRows;
 }
 
-void logicalFrame(){
+static void logicalFrame(){
   for(int i = 0; i < numberOfMatrixRows; i++){
     physicalFrameArr[i] = warpFrame(logicalFrameArr[i]);
     //printf("%d\n", logicalFrameArr[i]);
@@ -129,7 +129,7 @@ void logicalFrame(){
   writeMatrixByBytes(physicalFrameArr);
 }
 
-void displayMatrix(char* display){
+static void displayMatrix(char* display){
   //cleaning logicalFrameArr from previous values
   memset(logicalFrameArr,EMPTY, 8);
   char current = ' '; // initialize the current char to be empty
