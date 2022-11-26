@@ -27,5 +27,5 @@ NOTE: i2c-tools should be installed on the target in order to enable the hardwar
 ### Implementation
 
 * The program is entirely written in C.  
-* This implementation uses `makefile` to generate an executable binary which is then cross-compiled onto the target from the host.
+* This implementation uses `makefile` to generate an executable binary which is then cross-compiled onto the target from the host and executed on the BBG.
 
