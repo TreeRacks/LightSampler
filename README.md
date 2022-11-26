@@ -10,7 +10,7 @@ Connected with an Adafruit 8x8 LED Matrix and a GPIO Adafruit two-axis joystick 
 
 * For pin setup, refer to the BBG pin map at https://wiki.seeedstudio.com/BeagleBone_Green_Wireless/ for all relevant GPIO pins.
 
-* Please note that the photoresistor should be connected in series with two 10k resistors in a voltage divider configuration in order to comply with the BBG voltage that will be supplied to the breadboard.
+* Please note that the Adafruit photocell CdS photoresistor should be connected in series with two 10k resistors in a voltage divider configuration in order to comply with the BBG voltage that will be supplied to the breadboard.
 
 * Configure pins on the BBG for I2C and GPIO by running the following commands on the target:
 ```
